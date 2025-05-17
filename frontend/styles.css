@@ -28,7 +28,10 @@ label {
     font-weight: bold;
 }
 
-input[type="text"], input[type="file"], select, textarea {
+input[type="text"],
+input[type="file"],
+select,
+textarea {
     width: 98%;
     padding: 8px;
     margin-top: 5px;
@@ -53,6 +56,14 @@ button {
 
 button:hover {
     background-color: #0056b3;
+}
+
+#disapprove:hover {
+    background-color: #bb0202 !important;;
+}
+
+#approve:hover {
+    background-color: #167a2d !important;;
 }
 
 button:disabled {
@@ -91,8 +102,13 @@ hr {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Ensure select2 dropdowns in flexbox fit properly */
@@ -107,7 +123,7 @@ hr {
     margin: 0 -10px;
 }
 
-.dropdown-row > div {
+.dropdown-row>div {
     width: 33.33%;
     padding: 0 10px;
 }

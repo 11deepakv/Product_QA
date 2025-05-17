@@ -41,14 +41,16 @@
                             <span style="color: #888; font-size: 0.8em;">(Auto-selected based on Task Serial)</span>
                         </label>
                         <select id="assignee" name="assignee" class="select2" style="width: 100%;"></select>
-                        <div style="font-size: 0.8em; color: #666; margin-top: 3px;">This field is locked and will be automatically filled when you select a Task Serial Number</div>
+                        <div style="font-size: 0.8em; color: #666; margin-top: 3px;">This field is locked and will be
+                            automatically filled when you select a Task Serial Number</div>
                     </div>
                     <div style="width: 33.33%; padding: 0 10px; margin-bottom: 10px;">
                         <label for="itemId">Item ID
-                        <span style="color: #888; font-size: 0.8em;">(Auto-selected based on Task Serial)</span>
-                    </label>
+                            <span style="color: #888; font-size: 0.8em;">(Auto-selected based on Task Serial)</span>
+                        </label>
                         <select id="itemId" name="itemId" class="select2" style="width: 100%;"></select>
-                        <div style="font-size: 0.8em; color: #666; margin-top: 3px;">This field is locked and will be automatically filled when you select a Task Serial Number</div>
+                        <div style="font-size: 0.8em; color: #666; margin-top: 3px;">This field is locked and will be
+                            automatically filled when you select a Task Serial Number</div>
                     </div>
                     <!-- <div style="width: 33.33%; padding: 0 10px;">
                         <label for="category">Walmart Info</label>
@@ -65,14 +67,14 @@
                 <!-- </select> -->
                 <div id="urlInput">
                     <input type="text" name="url" placeholder="Enter Walmart Product URL" required>
-                </div> 
+                </div>
                 <!-- <div id="fileInput" style="display: none;">
                     <input type="file" name="file">
                 </div> -->
             </div>
 
             <div style="text-align: center; margin-top: 20px;">
-                <button type="submit">Start Scraping</button>
+                <button type="submit">Start Reviewing</button>
             </div>
         </form>
 
@@ -84,6 +86,7 @@
 
         <!-- Results -->
         <div id="results"></div>
+        <div id="match_form" style="display: none; margin-top: 12px;"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>

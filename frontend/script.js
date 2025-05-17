@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('DOM loaded, initializing Date/Time and dropdowns');
+    // console.log('DOM loaded, initializing Date/Time and dropdowns');
 
     // Store Walmart URL and Start Timestamp
     let walmartUrl = '';
@@ -45,16 +45,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     setTimeout(() => {
         updateDateTime();
-        console.log('Started Date/Time interval');
+        // console.log('Started Date/Time interval');
         setInterval(updateDateTime, 1000);
     }, 500);
 
     // Google Sheets Data Fetch
     try {
-        console.log('Fetching Google Sheet data');
+        // console.log('Fetching Google Sheet data');
         const response = await fetch('/get-sheet-data/');
         sheetData = await response.json();
-        console.log('Google Sheet data fetched:', sheetData);
+        // console.log('Google Sheet data fetched:', sheetData);
 
         if (sheetData.error) {
             console.error('Google Sheet error:', sheetData.error);
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Function to update taskSerial and itemId dropdowns
         function updateDropdowns(selectedAssignee) {
-            console.log('Updating dropdowns for Assignee:', selectedAssignee || 'None');
+            // console.log('Updating dropdowns for Assignee:', selectedAssignee || 'None');
 
             // Clear existing options
             taskSerialSelect.innerHTML = '<option value="">Select Task Serial Number</option>';
@@ -139,8 +139,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // totalTasks = filteredItemIds.length;
 
-            console.log('Filtered Serials:', filteredSerials);
-            console.log('Filtered Item IDs:', filteredItemIds);
+            // console.log('Filtered Serials:', filteredSerials);
+            // console.log('Filtered Item IDs:', filteredItemIds);
 
             // Populate taskSerial dropdown
             filteredSerials.forEach(serial => {
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Clear any default assignee selection
         $('#l2assignee').val('').trigger('change');
-        console.log('Initial L2 Assignee cleared');
+        // console.log('Initial L2 Assignee cleared');
         
         // Populate taskSerial and itemId with all values
         updateDropdowns(null);
@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const urlInput = document.querySelector('#urlInput input[name="url"]');
                 if (urlInput) urlInput.value = '';
                 updateDropdowns(newValue || null);
-                console.log('l2 Assignee dropdown closed, updated for:', newValue || 'None');
+                // console.log('l2 Assignee dropdown closed, updated for:', newValue || 'None');
             });
         });
 
@@ -290,8 +290,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     $('#itemId').prop('disabled', true);
                     $('#assignee').prop('disabled', true);
                     // Debug: Log itemId value and options
-                    console.log('Selected Item ID:', $('#itemId').val());
-                    console.log('Item ID Options:', Array.from(itemIdSelect.options).map(opt => opt.value));
+                    // console.log('Selected Item ID:', $('#itemId').val());
+                    // console.log('Item ID Options:', Array.from(itemIdSelect.options).map(opt => opt.value));
                     // Explicitly set URL as fallback
                     if (urlInput) {
                         urlInput.value = `https://www.walmart.com/ip/${row[itemIdIndex]}?selected=true`;
@@ -360,12 +360,16 @@ document.getElementById('scrapeForm').addEventListener('submit', async function 
         second: '2-digit'
     }).replace(',', '');
     loader.style.display = 'block';
+    const matchFormDiv = document.getElementById(`match_form`);
+    matchFormDiv.style.display = 'none';
     resultsDiv.innerHTML = '';
     try {
         const response = await fetch('/process/', {
             method: 'POST',
             body: formData
         });
+
+        await updateFeedbackForm();  
         const resultHTML = await response.text();
         loader.style.display = 'none';
         resultsDiv.innerHTML = resultHTML;
@@ -375,6 +379,122 @@ document.getElementById('scrapeForm').addEventListener('submit', async function 
         resultsDiv.innerHTML = '<p class="error">Something went wrong. Please try again.</p>';
     }
 });
+
+async function updateFeedbackForm() {
+    const matchFormDiv = document.getElementById(`match_form`);
+    matchFormDiv.style.display = 'none';
+    try {
+        const response = await fetch('/get-sheet-data/');
+        const sheetData = await response.json();
+        const itemid = $('#itemId').val();
+        console.log(itemid);
+        await showMatchForm("0", matchFormDiv);
+        rows = sheetData.rows;
+        const itemIdIndex = sheetData.headers.indexOf('Item_Id');
+        console.log(rows[0])
+        rows.forEach(row => {
+            if (row[itemIdIndex] === itemid) {
+                Comp_Url_index = sheetData.headers.indexOf('Comp_Url');
+                Match_Type_index = sheetData.headers.indexOf('Match_Type');
+                Match_Type_Comments_index = sheetData.headers.indexOf('Match_Type_Comments');
+                Notes_index = sheetData.headers.indexOf('Notes');
+                Comments_index = sheetData.headers.indexOf('Comments');
+                Search_Type_index = sheetData.headers.indexOf('Search_Type');
+                Source_Of_Search_index = sheetData.headers.indexOf('Source_Of_Search');
+                Search_Keyword_index = sheetData.headers.indexOf('Search_Keyword');
+
+                if (row[Comp_Url_index]) {
+                    competitorUrl = row[Comp_Url_index];
+                    const competitor_urlSelect = document.getElementById(`competitor_url_0`);
+                    const option = document.createElement('option');
+                    option.value = competitorUrl;
+                    option.textContent = competitorUrl;
+                    competitor_urlSelect.appendChild(option);
+                    $('#competitor_url_0').val(competitorUrl).trigger('change.select2');
+                    $(`#competitor_url_0`).prop('disabled', true);
+                }
+                if (row[Match_Type_index]) {
+                    matchType = row[Match_Type_index];
+                    if(matchType === "Exact Match"){
+                        const exact_match_fieldSelect = document.getElementById('exact_match_fields_0');
+                        exact_match_fieldSelect.style.display = 'block'
+                    }
+                    const matchTypeSelect = document.getElementById('match_type_0');
+                    const option = document.createElement('option');
+                    option.value = matchType;
+                    option.textContent = matchType;
+                    matchTypeSelect.appendChild(option);
+                    $('#match_type_0').val(matchType).trigger('change.select2');
+                    $(`#match_type_0`).prop('disabled', true);
+                }
+                if (row[Match_Type_Comments_index]) {
+                    matchTypeComments = row[Match_Type_Comments_index];
+                    const matchTypeCommentsSelect = document.getElementById('match_type_comments_0');
+                    const option = document.createElement('option');
+                    option.value = matchTypeComments;
+                    option.textContent = matchTypeComments;
+                    matchTypeCommentsSelect.appendChild(option);
+                    $('#match_type_comments_0').val(matchTypeComments).trigger('change.select2');
+                    $(`#match_type_comments_0`).prop('disabled', true);
+                }
+                if (row[Notes_index]) {
+                    notes = row[Notes_index];
+                    const notesSelect = document.getElementById('notes_0');
+                    const option = document.createElement('option');
+                    option.value = notes;
+                    option.textContent = notes;
+                    notesSelect.appendChild(option);
+                    $('#notes_0').val(notes).trigger('change.select2');
+                    $(`#notes_0`).prop('disabled', true);
+                }
+                if (row[Comments_index]) {
+                    comments = row[Comments_index];
+                    const commentsSelect = document.getElementById('comment_0');
+                    const option = document.createElement('option');
+                    option.value = comments;
+                    option.textContent = comments;
+                    commentsSelect.appendChild(option);
+                    $('#comment_0').val(comments).trigger('change.select2');
+                    $(`#comment_0`).prop('disabled', true);
+                }
+                if (row[Search_Type_index]) {
+                    searchType = row[Search_Type_index];
+                    const searchTypeSelect = document.getElementById('search_type_0');
+                    const option = document.createElement('option');
+                    option.value = searchType;
+                    option.textContent = searchType;
+                    searchTypeSelect.appendChild(option);
+                    $('#search_type_0').val(searchType).trigger('change.select2');
+                    $(`#search_type_0`).prop('disabled', true);
+                }
+                if (row[Source_Of_Search_index]) {
+                    sourceOfSearch = row[Source_Of_Search_index];
+                    const sourceOfSearchSelect = document.getElementById('source_of_search_0');
+                    const option = document.createElement('option');
+                    option.value = sourceOfSearch;
+                    option.textContent = sourceOfSearch;
+                    sourceOfSearchSelect.appendChild(option);
+                    $('#source_of_search_0').val(sourceOfSearch).trigger('change.select2');
+                    $(`#source_of_search_0`).prop('disabled', true);
+                }
+                if (row[Search_Keyword_index]) {
+                    searchKeyword = row[Search_Keyword_index];
+                    const searchKeywordInput = document.getElementById('search_keyword_0');
+                    const option = document.createElement('option');
+                    option.value = searchKeyword;
+                    option.textContent = searchKeyword;
+                    searchKeywordInput.appendChild(option);
+                    $('#search_keyword_0').val(searchKeyword).trigger('change.select2');
+                    $(`#search_keyword_0`).prop('disabled', true);
+                }
+
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching match data:', error);
+        alert('Failed to load match data.');
+    }
+}
 
 async function searchAmazon(part1, part2, part3, searchType, idx) {
     const loader = document.getElementById('loader');
@@ -441,7 +561,7 @@ async function searchAmazon(part1, part2, part3, searchType, idx) {
         }
 
         // Show match form
-        await showMatchForm(idx, matchFormDiv);
+        // await showMatchForm(idx, matchFormDiv);
     } catch (error) {
         console.error("Error searching:", error);
         loader.style.display = 'none';
@@ -463,7 +583,7 @@ async function openGoogleLens(imageUrl, idx) {
         console.log("Google Lens URL:", googleLensUrl);
 
         // Show match form
-        await showMatchForm(idx, matchFormDiv);
+        // await showMatchForm(idx, matchFormDiv);
     } catch (error) {
         alert("Facing Error while opening Google Lens");
         console.error("Error opening Google Lens:", error);
@@ -548,8 +668,12 @@ async function showMatchForm(idx, matchFormDiv) {
             <label for="comment_${idx}">Comment</label>
             <textarea id="comment_${idx}" placeholder="Enter Comment" rows="3"></textarea>
         </div>
+        <div style="margin-top: 12px; display: flex;">
+            <button id="approve" style="display: block; background-color: #28c951;">Approve</button>
+            <button id="disapprove" style="display: block; margin-left: 10px; background-color: #fc4747;" onclick="disapporveButton(this.id)">Disapprove</button>
+        </div>
         <div style="margin-top: 12px;">
-            <button id="submit_match_${idx}" disabled>Submit</button>
+            <button id="submit_match_${idx}" disabled style="display: none;">Submit</button>
         </div>
     `;
         matchFormDiv.style.display = 'block';
@@ -804,4 +928,17 @@ async function showMatchForm(idx, matchFormDiv) {
         console.error('Error loading match form:', error);
         alert('Failed to load match form.');
     }
+}
+
+async function disapporveButton(id) {
+    console.log("Disapprove button clicked");
+    const matchFormDiv = document.getElementById(`match_form`);
+    await showMatchForm("0", matchFormDiv);
+
+    const approveButton = document.getElementById('approve');
+    const disapproveButton = document.getElementById('disapprove');
+    approveButton.style.display = 'none';
+    disapproveButton.style.display = 'none';
+    const submitButton = document.getElementById('submit_match_0');
+    submitButton.style.display = 'block';
 }

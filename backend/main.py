@@ -150,7 +150,7 @@ async def process(
         <div id="wayfair_link_{idx}"></div>
         <div id="match_form_{idx}" style="display: none; margin-top: 12px;"></div>
         """
-        html_content += "</div><hr>"
+        # html_content += "</div><hr>"
         
 
     return HTMLResponse(content=html_content)
@@ -170,8 +170,19 @@ async def get_sheet_data():
         item_id_index = None
         submit_index = None
         l2_assignee_index = None
+        Comp_Url_index = None
+        Match_Type_index = None
+        Match_Type_Comments_index = None
+        Notes_index = None
+        Comments_index = None
+        Start_TimeStamp_index = None
+        End_TimeStamp_index = None
+        AHT_Sec_index = None
+        AHT_Min_index = None
+        Search_Type_index = None
+        Source_Of_Search_index = None
+        Search_Keyword_index = None
 
-        
         for idx, header in enumerate(headers):
             if header.strip() == "Sl. No":
                 sl_no_index = idx
@@ -183,6 +194,30 @@ async def get_sheet_data():
                 submit_index = idx
             elif header.strip() == "Assignee L2":
                 l2_assignee_index = idx
+            elif header.strip() == "Comp_Url":
+                Comp_Url_index = idx
+            elif header.strip() == "Match_Type":
+                Match_Type_index = idx
+            elif header.strip() == "Match_Type_Comments":
+                Match_Type_Comments_index = idx
+            elif header.strip() == "Notes":
+                Notes_index = idx
+            elif header.strip() == "Comments":
+                Comments_index = idx
+            elif header.strip() == "Start TimeStamp":
+                Start_TimeStamp_index = idx
+            elif header.strip() == "End TimeStamp":
+                End_TimeStamp_index = idx
+            elif header.strip() == "AHT(in Seconds)":
+                AHT_Sec_index = idx
+            elif header.strip() == "AHT(In Min)":
+                AHT_Min_index = idx
+            elif header.strip() =="Search_Type":
+                Search_Type_index = idx
+            elif header.strip() == "Source_Of_Search":
+                Source_Of_Search_index = idx
+            elif header.strip() == "Search_Keyword":
+                Search_Keyword_index = idx
         
         if sl_no_index is None or assignee_index is None or item_id_index is None:
             return {"error": "Required headers ('Sl. No', 'Assignee', 'Item ID') not found in sheet"}
@@ -192,6 +227,19 @@ async def get_sheet_data():
         item_ids = set()
         submit = set()
         l2_assignees = set()
+        comp_urls = set()
+        match_types = set()
+        match_Type_Comments = set()
+        notes = set()
+        comments = set()
+        Start_TimeStamps = set()
+        End_TimeStamps = set()
+        AHT_Mins = set()
+        AHT_Secs = set()
+        Search_Types = set()
+        Source_Of_Searchs = set()
+        Search_Keywords = set()
+
         rows = []
         
         for row in all_values[1:]:
@@ -205,6 +253,30 @@ async def get_sheet_data():
                 submit.add(row[submit_index])
             if len(row) > l2_assignee_index and row[l2_assignee_index]:
                 l2_assignees.add(row[l2_assignee_index])
+            if len(row) > Comp_Url_index and row[Comp_Url_index]:
+                comp_urls.add(row[Comp_Url_index])
+            if len(row) > Match_Type_index and row[Match_Type_index]:
+                match_types.add(row[Match_Type_index])
+            if len(row) > Match_Type_Comments_index and row[Match_Type_Comments_index]:
+                match_Type_Comments.add(row[Match_Type_Comments_index])
+            if len(row) > Notes_index and row[Notes_index]:
+                notes.add(row[Notes_index])
+            if len(row) > Comments_index and row[Comments_index]:
+                comments.add(row[Comments_index])
+            if len(row) > Start_TimeStamp_index and row[Start_TimeStamp_index]:
+                Start_TimeStamps.add(row[Start_TimeStamp_index])
+            if len(row) > End_TimeStamp_index and row[End_TimeStamp_index]:
+                End_TimeStamps.add(row[End_TimeStamp_index])
+            if len(row) > AHT_Min_index and row[AHT_Min_index]:
+                AHT_Mins.add(row[AHT_Min_index])
+            if len(row) > AHT_Sec_index and row[AHT_Sec_index]:
+                AHT_Secs.add(row[AHT_Sec_index])
+            if len(row) > Search_Type_index and row[Search_Type_index]:
+                Search_Types.add(row[Search_Type_index])
+            if len(row) > Source_Of_Search_index and row[Source_Of_Search_index]:
+                Source_Of_Searchs.add(row[Source_Of_Search_index])
+            if len(row) > Search_Keyword_index and row[Search_Keyword_index]:
+                Search_Keywords.add(row[Search_Keyword_index])
             rows.append(row)
         
         assignees = sorted(assignees)
@@ -212,7 +284,18 @@ async def get_sheet_data():
         item_ids = sorted(item_ids)
         l2_assignees = sorted(l2_assignees)
         submit = sorted(submit)
-
+        comp_urls = sorted(comp_urls)
+        match_types = sorted(match_types)
+        match_Type_Comments = sorted(match_Type_Comments)
+        notes = sorted(notes)
+        comments = sorted(comments)
+        Start_TimeStamps = sorted(Start_TimeStamps)
+        End_TimeStamps = sorted(End_TimeStamps)
+        AHT_Mins = sorted(AHT_Mins)
+        AHT_Secs = sorted(AHT_Secs)
+        Search_Types = sorted(Search_Types)
+        Source_Of_Searchs = sorted(Source_Of_Searchs)
+        Search_Keywords = sorted(Search_Keywords)
         return {
             "assignees": assignees,
             "serial_numbers": serial_numbers,
@@ -220,7 +303,19 @@ async def get_sheet_data():
             "submit": submit,
             "rows": rows,
             "headers": headers,
-            "l2_assignees": l2_assignees
+            "l2_assignees": l2_assignees,
+            "comp_urls": comp_urls,
+            "match_types": match_types,
+            "match_Type_Comments": match_Type_Comments,
+            "notes": notes,
+            "comments": comments,
+            "Start_TimeStamps": Start_TimeStamps,
+            "End_TimeStamps": End_TimeStamps,
+            "AHT_Mins": AHT_Mins,
+            "AHT_Secs": AHT_Secs,
+            "Search_Types": Search_Types,
+            "Source_Of_Searchs": Source_Of_Searchs,
+            "Search_Keywords": Search_Keywords
         }
     except Exception as e:
         return {"error": f"Failed to read Google Sheet: {str(e)}"}
