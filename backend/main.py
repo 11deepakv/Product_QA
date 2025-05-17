@@ -376,36 +376,38 @@ async def submit_match(request: Request):
         # Importing credentials
         creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
         client = gspread.authorize(creds)
-        sheet = client.open_by_key("1Qg9iJGUAxSacy-SflMbcsM_nXkT79JcWdqEwGBRrnWY").sheet1
-        all_values = sheet.get('A1:Z', value_render_option='FORMATTED_VALUE')
+        sheet = client.open_by_key("1RHEpq4k2tVgs4cQMYBtrwqOsXVZpU2KIPM0-Ct-vbcE").sheet1
+        all_values = sheet.get('A1:AC', value_render_option='FORMATTED_VALUE')
         
         headers = all_values[0]
         item_id_index = headers.index("Item_Id") if "Item_Id" in headers else None
-        assignee_index = headers.index("Assignee") if "Assignee" in headers else None
-        
+        assignee_index = headers.index("Assignee L2") if "Assignee L2" in headers else None
+        # print(assignee_index)
         if item_id_index is None or assignee_index is None:
-            return {"error": "Required headers ('Item_Id', 'Assignee') not found in sheet"}
+            return {"error": "Required headers ('Item_Id', 'Assignee L2') not found in sheet"}
         
+        # print(data["l2assignee"])
         # Find matching row
         row_index = None
         for i, row in enumerate(all_values[1:], start=2):
             if (len(row) > item_id_index and row[item_id_index] == data["itemId"] and
-                len(row) > assignee_index and row[assignee_index] == data["assignee"]):
+                len(row) > assignee_index and row[assignee_index] == data["l2assignee"]):
                 row_index = i
                 break
         
         if row_index is None:
             return {"error": f"No matching row found for Item_Id: {data['itemId']}, Assignee: {data['assignee']}"}
         
+        print(headers)
         # Prepare row data
-        row_data = [""] * len(headers)
+        row_data = [""] * max(len(headers), 29)
         for idx, header in enumerate(headers):
             if header == "Sl. No":
                 row_data[idx] = data.get("taskSerial", "")
             elif header == "Item_Id":
                 row_data[idx] = data.get("itemId", "")
-            elif header == "Category":
-                row_data[idx] = data.get("category", "")
+            elif header == "Assignee L2":
+                row_data[idx] = data.get("l2assignee", "")
             elif header == "Assignee":
                 row_data[idx] = data.get("assignee", "")
             elif header == "TASK STATE":
@@ -439,8 +441,25 @@ async def submit_match(request: Request):
             elif header == "Search_Keyword":
                 row_data[idx] = data.get("searchKeyword", "")
         
+        # print(data.get("searchKeyword", ""), data.get("sourceOfSearch", ""), data.get("searchType", ""))
         # Update row
-        sheet.update(f"A{row_index}:Z{row_index}", [row_data])
+        # print(f"row_data (length {len(row_data)}): {row_data}")
+        # print(f"Values for AA, AB, AC: {row_data[26:29]}")  # Columns 27-29
+        sheet.update(f"A{row_index}:AC{row_index}", [row_data])
+
+        sheet2 = client.open_by_key("1Qg9iJGUAxSacy-SflMbcsM_nXkT79JcWdqEwGBRrnWY").sheet1
+        all_values2 = sheet2.get('A1:Z', value_render_option='FORMATTED_VALUE')
+        submit2index = all_values2[0].index("Submit")
+        print(submit2index)
+        item_id2_index = all_values2[0].index("Item_Id")
+        sheet2rowIndex = None
+        for i, item_id in enumerate(all_values2[1:], start=2):
+            if (len(item_id) > item_id2_index and item_id[item_id2_index] == data["itemId"]):
+                sheet2rowIndex = i
+        print(sheet2rowIndex)
+        # print(submit2)
+        # sheet2.update_cell(sheet2rowIndex, submit2index+1, "Submit")
+
         return {"message": "All details are saved"}
     except Exception as e:
         return {"error": f"Failed to update Google Sheet: {str(e)}"}

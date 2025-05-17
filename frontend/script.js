@@ -669,8 +669,8 @@ async function showMatchForm(idx, matchFormDiv) {
             <textarea id="comment_${idx}" placeholder="Enter Comment" rows="3"></textarea>
         </div>
         <div style="margin-top: 12px; display: flex;">
-            <button id="approve" style="display: block; background-color: #28c951;">Approve</button>
-            <button id="disapprove" style="display: block; margin-left: 10px; background-color: #fc4747;" onclick="disapporveButton(this.id)">Disapprove</button>
+            <button id="approve" style="display: block; background-color: #28c951;" onclick="approveButton(this.id)">Approve</button>
+            <button id="disapprove" style="display: block; margin-left: 10px; background-color: #fc4747;" onclick="disapproveButton(this.id)">Disapprove</button>
         </div>
         <div style="margin-top: 12px;">
             <button id="submit_match_${idx}" disabled style="display: none;">Submit</button>
@@ -882,10 +882,10 @@ async function showMatchForm(idx, matchFormDiv) {
                 const ahtMinutes = Math.round(ahtSeconds / 60);
 
                 const formData = {
+                    l2assignee: $('#l2assignee').val() || '',
                     assignee: $('#assignee').val() || '',
                     taskSerial: $('#taskSerial').val() || '',
                     itemId: $('#itemId').val() || '',
-                    category: document.getElementById('category').value || '',
                     walmartUrl: walmartUrl,
                     matchType: matchType || '',
                     matchTypeComments: $(`#match_type_comments_${idx}`).val() || '',
@@ -930,7 +930,7 @@ async function showMatchForm(idx, matchFormDiv) {
     }
 }
 
-async function disapporveButton(id) {
+async function disapproveButton(id) {
     console.log("Disapprove button clicked");
     const matchFormDiv = document.getElementById(`match_form`);
     // await showMatchForm("0", matchFormDiv);
@@ -949,4 +949,17 @@ async function disapporveButton(id) {
     disapproveButton.style.display = 'none';
     const submitButton = document.getElementById('submit_match_0');
     submitButton.style.display = 'block';
+    submitButton.disabled = false;
+}
+
+async function approveButton(id) {
+    console.log("Approve button clicked");
+
+    const approveButton = document.getElementById('approve');
+    const disapproveButton = document.getElementById('disapprove');
+    approveButton.style.display = 'none';
+    disapproveButton.style.display = 'none';
+    const submitButton = document.getElementById('submit_match_0');
+    submitButton.style.display = 'block';
+    submitButton.disabled = false;
 }
