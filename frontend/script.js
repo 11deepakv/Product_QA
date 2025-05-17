@@ -933,7 +933,15 @@ async function showMatchForm(idx, matchFormDiv) {
 async function disapporveButton(id) {
     console.log("Disapprove button clicked");
     const matchFormDiv = document.getElementById(`match_form`);
-    await showMatchForm("0", matchFormDiv);
+    // await showMatchForm("0", matchFormDiv);
+    $(`#match_type_0`).prop('disabled', false);
+    $(`#search_keyword_0`).prop('disabled', false);
+    $(`#competitor_url_0`).prop('disabled', false);
+    $(`#match_type_comments_0`).prop('disabled', false);
+    $(`#notes_0`).prop('disabled', false);
+    $(`#comment_0`).prop('disabled', false);
+    $(`#search_type_0`).prop('disabled', false);
+    $(`#source_of_search_0`).prop('disabled', false);
 
     const approveButton = document.getElementById('approve');
     const disapproveButton = document.getElementById('disapprove');
