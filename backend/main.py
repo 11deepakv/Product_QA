@@ -8,10 +8,7 @@ from google.oauth2.service_account import Credentials
 import openpyxl
 import requests
 from backend.crawler import crawlbase_extract, search_amazon_product
-import shutil
-import csv
 import os
-from datetime import datetime, timedelta
 
 app = FastAPI()
 
@@ -502,7 +499,12 @@ async def submit_match(request: Request):
                 row_data[idx] = data.get("sourceOfSearch", "")
             elif header == "Search_Keyword":
                 row_data[idx] = data.get("searchKeyword", "")
-            elif header == "Walmart_UPC":
+        # print(row_data)
+
+        # Handle the case where the row is not found in the Client sheet
+        # Update the row data with values from the Client sheet
+        if row_index_client is not None:
+            if header == "Walmart_UPC":
                 walmart_upc_index_client = headers_row_client.index("Walmart_UPC")
                 row_data[idx] = rows_client[row_index_client+1][walmart_upc_index_client]
             elif header == "Item_Id":
@@ -533,8 +535,6 @@ async def submit_match(request: Request):
                 Brand_Name_index_client = headers_row_client.index("Brand_Name")
                 row_data[idx] = rows_client[row_index_client+1][Brand_Name_index_client]
 
-        # print(row_data)
-
         # Update the row in the Final output sheet
         sheet.update(f"A{row_index}:AC{row_index}", [row_data])
 
@@ -545,10 +545,13 @@ async def submit_match(request: Request):
         submit2index = all_values2[0].index("Submit")
         # print(submit2index)
         item_id2_index = all_values2[0].index("Item_Id")
+        assignee2_index = all_values2[0].index("Assignee L2")
         sheet2rowIndex = None
         for i, item_id in enumerate(all_values2[1:], start=2):
-            if (len(item_id) > item_id2_index and item_id[item_id2_index] == data["itemId"]):
+            if (len(item_id) > item_id2_index and item_id[item_id2_index] == data["itemId"] and
+                len(item_id) > assignee2_index and item_id[assignee2_index] == data["l2assignee"]):
                 sheet2rowIndex = i
+            
         # print(sheet2rowIndex)
        
         # Update the column Submit in product coverage sheet

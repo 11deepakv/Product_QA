@@ -289,7 +289,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     $('#assignee').val(row[l1assigneeIndex]).trigger('change.select2');
                     $('#itemId').prop('disabled', true);
                     $('#assignee').prop('disabled', true);
-                    // Debug: Log itemId value and options
                     // console.log('Selected Item ID:', $('#itemId').val());
                     // console.log('Item ID Options:', Array.from(itemIdSelect.options).map(opt => opt.value));
                     // Explicitly set URL as fallback
@@ -405,11 +404,11 @@ async function updateFeedbackForm() {
 
                 if (row[Comp_Url_index]) {
                     competitorUrl = row[Comp_Url_index];
-                    const competitor_urlSelect = document.getElementById(`competitor_url_0`);
-                    const option = document.createElement('option');
-                    option.value = competitorUrl;
-                    option.textContent = competitorUrl;
-                    competitor_urlSelect.appendChild(option);
+                    // const competitor_urlSelect = document.getElementById(`competitor_url_0`);
+                    // const option = document.createElement('option');
+                    // option.value = competitorUrl;
+                    // option.textContent = competitorUrl;
+                    // competitor_urlSelect.appendChild(option);
                     $('#competitor_url_0').val(competitorUrl).trigger('change.select2');
                     $(`#competitor_url_0`).prop('disabled', true);
                 }
@@ -419,11 +418,11 @@ async function updateFeedbackForm() {
                         const exact_match_fieldSelect = document.getElementById('exact_match_fields_0');
                         exact_match_fieldSelect.style.display = 'block'
                     }
-                    const matchTypeSelect = document.getElementById('match_type_0');
-                    const option = document.createElement('option');
-                    option.value = matchType;
-                    option.textContent = matchType;
-                    matchTypeSelect.appendChild(option);
+                    // const matchTypeSelect = document.getElementById('match_type_0');
+                    // const option = document.createElement('option');
+                    // option.value = matchType;
+                    // option.textContent = matchType;
+                    // matchTypeSelect.appendChild(option);
                     $('#match_type_0').val(matchType).trigger('change.select2');
                     $(`#match_type_0`).prop('disabled', true);
                 }
@@ -459,31 +458,31 @@ async function updateFeedbackForm() {
                 }
                 if (row[Search_Type_index]) {
                     searchType = row[Search_Type_index];
-                    const searchTypeSelect = document.getElementById('search_type_0');
-                    const option = document.createElement('option');
-                    option.value = searchType;
-                    option.textContent = searchType;
-                    searchTypeSelect.appendChild(option);
+                    // const searchTypeSelect = document.getElementById('search_type_0');
+                    // const option = document.createElement('option');
+                    // option.value = searchType;
+                    // option.textContent = searchType;
+                    // searchTypeSelect.appendChild(option);
                     $('#search_type_0').val(searchType).trigger('change.select2');
                     $(`#search_type_0`).prop('disabled', true);
                 }
                 if (row[Source_Of_Search_index]) {
                     sourceOfSearch = row[Source_Of_Search_index];
-                    const sourceOfSearchSelect = document.getElementById('source_of_search_0');
-                    const option = document.createElement('option');
-                    option.value = sourceOfSearch;
-                    option.textContent = sourceOfSearch;
-                    sourceOfSearchSelect.appendChild(option);
+                    // const sourceOfSearchSelect = document.getElementById('source_of_search_0');
+                    // const option = document.createElement('option');
+                    // option.value = sourceOfSearch;
+                    // option.textContent = sourceOfSearch;
+                    // sourceOfSearchSelect.appendChild(option);
                     $('#source_of_search_0').val(sourceOfSearch).trigger('change.select2');
                     $(`#source_of_search_0`).prop('disabled', true);
                 }
                 if (row[Search_Keyword_index]) {
                     searchKeyword = row[Search_Keyword_index];
-                    const searchKeywordInput = document.getElementById('search_keyword_0');
-                    const option = document.createElement('option');
-                    option.value = searchKeyword;
-                    option.textContent = searchKeyword;
-                    searchKeywordInput.appendChild(option);
+                    // const searchKeywordInput = document.getElementById('search_keyword_0');
+                    // const option = document.createElement('option');
+                    // option.value = searchKeyword;
+                    // option.textContent = searchKeyword;
+                    // searchKeywordInput.appendChild(option);
                     $('#search_keyword_0').val(searchKeyword).trigger('change.select2');
                     $(`#search_keyword_0`).prop('disabled', true);
                 }
