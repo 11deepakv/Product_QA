@@ -1,9 +1,12 @@
 from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import Request
 import gspread
+import tempfile
 from google.oauth2.service_account import Credentials
+import openpyxl
+import requests
 from backend.crawler import crawlbase_extract, search_amazon_product
 import shutil
 import csv
@@ -376,17 +379,17 @@ async def submit_match(request: Request):
         # Importing credentials
         creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
         client = gspread.authorize(creds)
+
+        # Importing the Final output sheet
         sheet = client.open_by_key("1RHEpq4k2tVgs4cQMYBtrwqOsXVZpU2KIPM0-Ct-vbcE").sheet1
         all_values = sheet.get('A1:AC', value_render_option='FORMATTED_VALUE')
         
         headers = all_values[0]
         item_id_index = headers.index("Item_Id") if "Item_Id" in headers else None
         assignee_index = headers.index("Assignee L2") if "Assignee L2" in headers else None
-        # print(assignee_index)
         if item_id_index is None or assignee_index is None:
             return {"error": "Required headers ('Item_Id', 'Assignee L2') not found in sheet"}
-        
-        # print(data["l2assignee"])
+
         # Find matching row
         row_index = None
         for i, row in enumerate(all_values[1:], start=2):
@@ -396,9 +399,68 @@ async def submit_match(request: Request):
                 break
         
         if row_index is None:
-            return {"error": f"No matching row found for Item_Id: {data['itemId']}, Assignee: {data['assignee']}"}
+            return {"error": f"No matching row found for Item_Id: {data['itemId']}, L2 Assignee: {data['l2assignee']}"}
         
-        print(headers)
+        # Importing Client sheet
+        metadata_url = f"https://www.googleapis.com/drive/v3/files/1KxtFsWBQH-y683g3CBgnJWWNC4hAYapH?fields=mimeType"
+        headers_client = {"Authorization": f"Bearer {creds.token}"}
+        response_client = requests.get(metadata_url, headers=headers_client)
+        if response_client.status_code == 401:
+            print("Token expired, refreshing...")
+            creds.refresh(Request())
+            headers = {"Authorization": f"Bearer {creds.token}"}
+            response_client = requests.get(metadata_url, headers=headers_client)
+
+        if response_client.status_code != 200:
+            return JSONResponse(status_code=500, content={"error": "Failed to get file metadata."})
+
+        mime_type = response_client.json().get("mimeType")
+        print(f"File MIME type: {mime_type}")
+
+        rows_client = []
+        if mime_type == "application/vnd.google-apps.spreadsheet":
+            print("File is a Google Sheet.")
+            sheet_client = client.open_by_key("1KxtFsWBQH-y683g3CBgnJWWNC4hAYapH").sheet1
+            all_values = sheet_client.get_all_values()
+            headers_row_client = all_values[0]
+            rows_client = all_values[1:]
+
+        else:
+            download_url = f"https://www.googleapis.com/drive/v3/files/1KxtFsWBQH-y683g3CBgnJWWNC4hAYapH?alt=media"
+            print("File is an Excel file.")
+            response_client = requests.get(download_url, headers=headers_client)
+            if response_client.status_code != 200:
+                return JSONResponse(status_code=500, content={"error": "Failed to download Excel file from Drive."})
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+                tmp.write(response_client.content)
+                tmp_path = tmp.name
+
+            try:
+                workbook = openpyxl.load_workbook(tmp_path)
+                sheet_client = workbook.active
+                headers_row_client = [cell.value for cell in next(sheet_client.iter_rows(min_row=1, max_row=1))]
+                rows_client = [[cell.value for cell in row] for row in sheet_client.iter_rows(min_row=2)]
+            finally:
+                os.remove(tmp_path)
+
+        # Removing "" from item_id in client sheet
+        def clean_str(s):
+            if s is None:
+               return ""
+            return str(s).strip().strip('"').strip("'")
+        
+        # Find matching row in Client sheet
+        item_id_index_client = headers_row_client.index("Item_Id") if "Item_Id" in headers_row_client else None
+        row_index_client = None
+        for i, row in enumerate(rows_client[1:]):
+            if (len(row) > item_id_index_client and clean_str(row[item_id_index_client]) == data["itemId"]):
+                row_index_client = i
+        # print(rows_client[row_index_client+1][item_id_index_client])
+        # retailer_id_index_client = headers_row_client.index("Retailer_Id")
+        # print(retailer_id_index_client)
+        # print(rows_client[row_index_client+1][retailer_id_index_client])
+
         # Prepare row data
         row_data = [""] * max(len(headers), 29)
         for idx, header in enumerate(headers):
@@ -440,25 +502,57 @@ async def submit_match(request: Request):
                 row_data[idx] = data.get("sourceOfSearch", "")
             elif header == "Search_Keyword":
                 row_data[idx] = data.get("searchKeyword", "")
-        
-        # print(data.get("searchKeyword", ""), data.get("sourceOfSearch", ""), data.get("searchType", ""))
-        # Update row
-        # print(f"row_data (length {len(row_data)}): {row_data}")
-        # print(f"Values for AA, AB, AC: {row_data[26:29]}")  # Columns 27-29
+            elif header == "Walmart_UPC":
+                walmart_upc_index_client = headers_row_client.index("Walmart_UPC")
+                row_data[idx] = rows_client[row_index_client+1][walmart_upc_index_client]
+            elif header == "Item_Id":
+                item_id_index_client = headers_row_client.index("Item_Id")
+                row_data[idx] = rows_client[row_index_client+1][item_id_index_client]
+            elif header == "Retailer_Id":
+                retailer_id_index_client = headers_row_client.index("Retailer_Id")
+                row_data[idx] = rows_client[row_index_client+1][retailer_id_index_client]
+            elif header == "Super_Department":
+                Super_Department_index_client = headers_row_client.index("Super_Department")
+                row_data[idx] = rows_client[row_index_client+1][Super_Department_index_client]
+            elif header == "Department":
+                Department_index_client = headers_row_client.index("Department")
+                row_data[idx] = rows_client[row_index_client+1][Department_index_client]
+            elif header == "Product_Type":
+                Product_Type_index_client = headers_row_client.index("Product_Type")
+                row_data[idx] = rows_client[row_index_client+1][Product_Type_index_client]
+            elif header == "Walmart_Url":
+                Walmart_Url_index_client = headers_row_client.index("Walmart_Url")
+                row_data[idx] = rows_client[row_index_client+1][Walmart_Url_index_client]
+            elif header == "Walmart_Info":
+                Walmart_Info_index_client = headers_row_client.index("Walmart_Info")
+                row_data[idx] = rows_client[row_index_client+1][Walmart_Info_index_client]
+            elif header == "Item_Name":
+                Item_Name_index_client = headers_row_client.index("Item_Name")
+                row_data[idx] = rows_client[row_index_client+1][Item_Name_index_client]
+            elif header == "Brand_Name":
+                Brand_Name_index_client = headers_row_client.index("Brand_Name")
+                row_data[idx] = rows_client[row_index_client+1][Brand_Name_index_client]
+
+        # print(row_data)
+
+        # Update the row in the Final output sheet
         sheet.update(f"A{row_index}:AC{row_index}", [row_data])
 
+
+        # Importing the product coverage sheet
         sheet2 = client.open_by_key("1Qg9iJGUAxSacy-SflMbcsM_nXkT79JcWdqEwGBRrnWY").sheet1
         all_values2 = sheet2.get('A1:Z', value_render_option='FORMATTED_VALUE')
         submit2index = all_values2[0].index("Submit")
-        print(submit2index)
+        # print(submit2index)
         item_id2_index = all_values2[0].index("Item_Id")
         sheet2rowIndex = None
         for i, item_id in enumerate(all_values2[1:], start=2):
             if (len(item_id) > item_id2_index and item_id[item_id2_index] == data["itemId"]):
                 sheet2rowIndex = i
-        print(sheet2rowIndex)
-        # print(submit2)
-        # sheet2.update_cell(sheet2rowIndex, submit2index+1, "Submit")
+        # print(sheet2rowIndex)
+       
+        # Update the column Submit in product coverage sheet
+        sheet2.update_cell(sheet2rowIndex, submit2index+1, "Submit")
 
         return {"message": "All details are saved"}
     except Exception as e:

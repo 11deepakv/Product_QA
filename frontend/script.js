@@ -83,8 +83,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Clear existing options
             taskSerialSelect.innerHTML = '<option value="">Select Task Serial Number</option>';
-            itemIdSelect.innerHTML = '<option value="">Select Item ID</option>';
-            assigneeSelect.innerHTML = '<option value="">Select L1 Assignee</option>';
+            itemIdSelect.innerHTML = '<option value="">Item ID will be auto-selected</option>';
+            assigneeSelect.innerHTML = '<option value="">L1 Assignee will be auto-selected</option>';
 
             let filteredSerials = sheetData.serial_numbers;
             let filteredItemIds = [];
@@ -187,13 +187,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 closeOnSelect: true
             });
             $('#itemId').select2({
-                placeholder: 'Select Item ID',
+                placeholder: 'Item ID will be auto-selected',
                 allowClear: true,
                 closeOnSelect: true
             });
 
             $('#assignee').select2({
-                placeholder: 'Select L1 Assignee',
+                placeholder: 'L1 Assignee will be auto-selected',
                 allowClear: true,
                 closeOnSelect: true
             });
@@ -223,13 +223,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             closeOnSelect: true
         });
         $('#itemId').select2({
-            placeholder: 'Select Item ID',
+            placeholder: 'Item ID will be auto-selected',
             allowClear: true,
             closeOnSelect: true
         });
 
         $('#assignee').select2({
-            placeholder: 'Select L1 Assignee',
+            placeholder: 'L1 Assignee will be auto-selected',
             allowClear: true,
             closeOnSelect: true
         });
