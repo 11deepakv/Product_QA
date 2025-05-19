@@ -90,9 +90,10 @@ async def process(
     elif model == 'N/A' and manufacturer != 'N/A':
         model_tag = manufacturer
     elif model != 'N/A' and manufacturer == 'N/A':
-        model_tag = model_tag
+        model_tag = model
     elif model != 'N/A' and manufacturer != 'N/A':
         model_tag = f"{model} %2B {manufacturer}"
+    # print(model, manufacturer,model_tag)
     
     isbn_ean_bool = False
     isbn_ean=None
@@ -130,7 +131,7 @@ async def process(
             <button onclick="searchAmazon('{gtin13}', '', '', 'title', {idx})">Step 1.2: UPC Search</button>"""
         else:
             html_content += f"""
-            <button onclick="searchAmazon('{res['gtin13']}', '', '', 'title', {idx})">Step 1: UPC Search</button>"""
+            <button onclick="searchAmazon('{gtin13}', '', '', 'title', {idx})">Step 1: UPC Search</button>"""
         html_content += f"""
         <button onclick="searchAmazon('{res['title']}', '', '', 'title', {idx})">Step 2: Title Search</button>
         <button onclick="searchAmazon('{res['title']}', '{res['brand']}', '', 'title_brand', {idx})">Step 3: Title + Brand Search</button>
@@ -499,43 +500,43 @@ async def submit_match(request: Request):
                 row_data[idx] = data.get("sourceOfSearch", "")
             elif header == "Search_Keyword":
                 row_data[idx] = data.get("searchKeyword", "")
-        # print(row_data)
 
         # Handle the case where the row is not found in the Client sheet
         # Update the row data with values from the Client sheet
-        if row_index_client is not None:
-            if header == "Walmart_UPC":
-                walmart_upc_index_client = headers_row_client.index("Walmart_UPC")
-                row_data[idx] = rows_client[row_index_client+1][walmart_upc_index_client]
-            elif header == "Item_Id":
-                item_id_index_client = headers_row_client.index("Item_Id")
-                row_data[idx] = rows_client[row_index_client+1][item_id_index_client]
-            elif header == "Retailer_Id":
-                retailer_id_index_client = headers_row_client.index("Retailer_Id")
-                row_data[idx] = rows_client[row_index_client+1][retailer_id_index_client]
-            elif header == "Super_Department":
-                Super_Department_index_client = headers_row_client.index("Super_Department")
-                row_data[idx] = rows_client[row_index_client+1][Super_Department_index_client]
-            elif header == "Department":
-                Department_index_client = headers_row_client.index("Department")
-                row_data[idx] = rows_client[row_index_client+1][Department_index_client]
-            elif header == "Product_Type":
-                Product_Type_index_client = headers_row_client.index("Product_Type")
-                row_data[idx] = rows_client[row_index_client+1][Product_Type_index_client]
-            elif header == "Walmart_Url":
-                Walmart_Url_index_client = headers_row_client.index("Walmart_Url")
-                row_data[idx] = rows_client[row_index_client+1][Walmart_Url_index_client]
-            elif header == "Walmart_Info":
-                Walmart_Info_index_client = headers_row_client.index("Walmart_Info")
-                row_data[idx] = rows_client[row_index_client+1][Walmart_Info_index_client]
-            elif header == "Item_Name":
-                Item_Name_index_client = headers_row_client.index("Item_Name")
-                row_data[idx] = rows_client[row_index_client+1][Item_Name_index_client]
-            elif header == "Brand_Name":
-                Brand_Name_index_client = headers_row_client.index("Brand_Name")
-                row_data[idx] = rows_client[row_index_client+1][Brand_Name_index_client]
+            if row_index_client is not None:
+                if header == "Walmart_UPC":
+                    walmart_upc_index_client = headers_row_client.index("Walmart_UPC")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][walmart_upc_index_client])
+                elif header == "Item_Id":
+                    item_id_index_client = headers_row_client.index("Item_Id")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][item_id_index_client])
+                elif header == "Retailer_Id":
+                    retailer_id_index_client = headers_row_client.index("Retailer_Id")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][retailer_id_index_client])
+                elif header == "Super_Department":
+                    Super_Department_index_client = headers_row_client.index("Super_Department")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][Super_Department_index_client])
+                elif header == "Department":
+                    Department_index_client = headers_row_client.index("Department")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][Department_index_client])
+                elif header == "Product_Type":
+                    Product_Type_index_client = headers_row_client.index("Product_Type")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][Product_Type_index_client])
+                elif header == "Walmart_Url":
+                    Walmart_Url_index_client = headers_row_client.index("Walmart_Url")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][Walmart_Url_index_client])
+                elif header == "Walmart_Info":
+                    Walmart_Info_index_client = headers_row_client.index("Walmart_Info")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][Walmart_Info_index_client])
+                elif header == "Item_Name":
+                    Item_Name_index_client = headers_row_client.index("Item_Name")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][Item_Name_index_client])
+                elif header == "Brand_Name":
+                    Brand_Name_index_client = headers_row_client.index("Brand_Name")
+                    row_data[idx] = clean_str(rows_client[row_index_client+1][Brand_Name_index_client])
 
         # Update the row in the Final output sheet
+        # print(row_data)
         sheet.update(f"A{row_index}:AC{row_index}", [row_data])
 
 

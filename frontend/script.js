@@ -95,7 +95,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const assigneeIndex = sheetData.headers.indexOf('Assignee L2');
                 const slNoIndex = sheetData.headers.indexOf('Sl. No');
                 const itemIdIndex = sheetData.headers.indexOf('Item_Id');
-                const taskStatusIndex = sheetData.headers.indexOf('Submit');
+                const taskStatusIndex = sheetData.headers.indexOf('TASK STATE');
+                const submitIndex = sheetData.headers.indexOf('Submit');
+
                 const assigneel1Index = sheetData.headers.indexOf('Assignee')
 
                 filteredSerials = [];
@@ -107,7 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (row[assigneeIndex] === selectedAssignee) {
                         if (row[slNoIndex] && row[itemIdIndex]) {
                             // Only include serials, assigneesl1 and item IDs with valid Item_Id and TASK STATE !== "Submit"
-                            if (!taskStatusIndex || row[taskStatusIndex] !== 'Submit') {
+                            if ((!taskStatusIndex || row[taskStatusIndex] === 'Submit') && row[submitIndex] !== 'Submit') {
                                 filteredSerials.push(row[slNoIndex]);
                                 filteredItemIds.push(row[itemIdIndex]);
                                 filteredAssignees.push(row[assigneel1Index])
@@ -125,14 +127,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // No assignee selected: filter out TASK STATE === "Submit"
                 const itemIdIndex = sheetData.headers.indexOf('Item_Id');
                 const assigneel1Index = sheetData.headers.indexOf('Assignee')
-                const taskStatusIndex = sheetData.headers.indexOf('Submit');
+                const taskStatusIndex = sheetData.headers.indexOf('TASK STATE');
+                const submitIndex = sheetData.headers.indexOf('Submit');
                 filteredItemIds = sheetData.item_ids.filter(id => {
                     const row = sheetData.rows.find(row => row[itemIdIndex] === id);
-                    return row && (!taskStatusIndex || row[taskStatusIndex] !== 'Submit');
+                    return row && (!taskStatusIndex || (row[taskStatusIndex] === 'Submit' && row[submitIndex] !== 'Submit'));
                 }).sort();
                 filteredAssignees = sheetData.assignees.filter(assignee=>{
                     const row = sheetData.rows.find(row => row[assigneel1Index] === assignee);
-                    return row && (!assigneel1Index || row[assigneel1Index] !== 'Submit');
+                    return row && (!assigneel1Index || (row[taskStatusIndex] === 'Submit' && row[submitIndex] !== 'Submit'));
                 })
                 pendingTasks = filteredItemIds.length;
             }

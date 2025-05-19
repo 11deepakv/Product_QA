@@ -100,22 +100,33 @@ def crawlbase_extract(url):
             'type': 'application/ld+json',
             'data-seo-id': 'schema-org-product'
         })
-        #print("ld_json_script",ld_json_script)
-        gtin13 = None 
+
+        gtin13 = None  
         if ld_json_script:
             try:
                 ld_data = json.loads(ld_json_script.string)
-                # gtin13 = ld_data.get('gtin13')
-                gtin13 = ld_data['gtin13'] if 'gtin13' in ld_data else None
+                gtin13 = ld_data['gtin13'] if 'gtin13' in ld_data else "N/A"
+                print("gtin13",gtin13)
+                if gtin13 == "N/A":
+                    for item in ld_data:
+                        print("item:",item)
+                        has_variant=item['hasVariant'] 
+                        if has_variant:
+                            print("yes_has_present")
+                            for variant in has_variant:
+                                if 'gtin13' in variant:
+                                    gtin13 = variant['gtin13']
+                                    break
+                # Fallback if gtin13 is not found
                 if gtin13 is None:
-                    gtin13 = "N/A"  # Fallback if gtin13 is not found
+                    gtin13 = "N/A"
                 print("gtin13",gtin13)
             except json.JSONDecodeError:
                 print("JSON decode error while extracting gtin13 from ld+json")
 
-        # image_url = features_dict.get('image_urls', ['N/A'])[0]
+
         image_url = features_dict['image_urls'][0] if 'image_urls' in features_dict else 'N/A'
-        print(f"Title: {title}, Brand: {brand}, Model: {model}, Price: {price}, Image URL: {image_url}, Manufacturer: {manufacturer}, ISBN-13: {isbn13}, ISBN-10: {isbn10}", f" EAN: {ean}", f" GTIN-13: {gtin13}")
+        # print(f"Title: {title}, Brand: {brand}, Model: {model}, Price: {price}, Image URL: {image_url}, Manufacturer: {manufacturer}, ISBN-13: {isbn13}, ISBN-10: {isbn10}", f" EAN: {ean}", f" GTIN-13: {gtin13}")
         return clean_quotes(title), clean_quotes(brand), clean_quotes(model),clean_quotes(manufacturer), clean_quotes(price), clean_quotes(isbn13),clean_quotes(isbn10),clean_quotes(ean),clean_quotes(image_url), clean_quotes(gtin13)
     except Exception as e:
         print(f"Error extracting Walmart page: {e}")
@@ -126,33 +137,29 @@ def crawlbase_search(query):
     query1 = query.replace(" ", "+")
     google_search_url = f"https://www.google.com/search?q={query1}"
     # webbrowser.open_new(google_search_url)
-    print(f"Google search URL: {google_search_url}")
+    # print(f"Google search URL: {google_search_url}")
     api_url = f"https://api.crawlbase.com/?token={CRAWLBASE_API_KEY}&url={google_search_url}&page_wait=5000&format=json"
 
     query2 = query.replace(' ', '+')
     amazon_search_url = f"https://www.amazon.com/s?k={query2}"
     # webbrowser.open_new_tab(amazon_search_url)
-    
-    print(f"Opening Amazon search for: {query2}")
-    print(f"Amazon search URL: {amazon_search_url}")
-    
-     # webbrowser.open_new_tab(ebay_search_url)
+    # webbrowser.open_new_tab(ebay_search_url)
     query3 = query.replace(' ', '+')
     ebay_search_url = f"https://www.ebay.com/sch/i.html?_nkw={query3}"  
-    print(f"eBay search URL: {ebay_search_url}")
+    # print(f"eBay search URL: {ebay_search_url}")
     query4 = query.replace(' ', '+')
     target_search_url = f"https://www.target.com/s?searchTerm={query4}"
-    print(f"Target search URL: {target_search_url}")
+    # print(f"Target search URL: {target_search_url}")
     query5 = query.replace(' ', '+')
     bestbuy_search_url = f"https://www.bestbuy.com/site/searchpage.jsp?st={query5}"
-    print(f"Opening Bestbuy search for: {query5}")
-    print(f"Bestbuy search URL: {bestbuy_search_url}")
+    # print(f"Opening Bestbuy search for: {query5}")
+    # print(f"Bestbuy search URL: {bestbuy_search_url}")
 
     #query  for wayfair.com
     query6 = query.replace(' ', '+')
     wayfair_search_url = f"https://www.wayfair.com/keyword.php?keyword={query6}"
-    print(f"Opening Wayfair search for: {query6}")
-    print(f"Wayfair search URL: {wayfair_search_url}")
+    # print(f"Opening Wayfair search for: {query6}")
+    # print(f"Wayfair search URL: {wayfair_search_url}")
     return amazon_search_url, google_search_url, ebay_search_url, target_search_url, bestbuy_search_url, wayfair_search_url
 
 def process_walmart_links(urls):
