@@ -12,7 +12,7 @@ def clean_quotes(text):
     return re.sub(r'[\'"]', '', text)
 
 # Crawlbase API key
-CRAWLBASE_API_KEY = "l0ViQzipVdkYsdofssC4-w"
+CRAWLBASE_API_KEY = "KpoG7F690McIB1OY2pMnUw"
 crawl_base="https://api.crawlbase.com/?token="
 def apiFetch(url):
    headers = {
@@ -109,7 +109,7 @@ def crawlbase_extract(url):
                 print("gtin13",gtin13)
                 if gtin13 == "N/A":
                     for item in ld_data:
-                        print("item:",item)
+                        # print("item:",item)
                         has_variant=item['hasVariant'] 
                         if has_variant:
                             print("yes_has_present")

@@ -83,17 +83,14 @@ async def process(
             })
     
     model_tag = None
-    if model == 'N/A' and manufacturer == 'N/A':
-        model_tag = 'N/A'
-    elif model == manufacturer:
+    if model == manufacturer:
         model_tag = manufacturer
     elif model == 'N/A' and manufacturer != 'N/A':
         model_tag = manufacturer
     elif model != 'N/A' and manufacturer == 'N/A':
         model_tag = model
-    elif model != 'N/A' and manufacturer != 'N/A':
+    elif model != 'N/A' and manufacturer != 'N/A' and model != manufacturer:
         model_tag = f"{model} %2B {manufacturer}"
-    # print(model, manufacturer,model_tag)
     
     isbn_ean_bool = False
     isbn_ean=None
@@ -501,8 +498,8 @@ async def submit_match(request: Request):
             elif header == "Search_Keyword":
                 row_data[idx] = data.get("searchKeyword", "")
 
-        # Handle the case where the row is not found in the Client sheet
-        # Update the row data with values from the Client sheet
+            # Handle the case where the row is not found in the Client sheet
+            # Update the row data with values from the Client sheet
             if row_index_client is not None:
                 if header == "Walmart_UPC":
                     walmart_upc_index_client = headers_row_client.index("Walmart_UPC")
