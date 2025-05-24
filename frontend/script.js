@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const taskStatusIndex = sheetData.headers.indexOf('TASK STATE');
                 const submitIndex = sheetData.headers.indexOf('Submit');
 
-                const assigneel1Index = sheetData.headers.indexOf('Assignee')
+                const assigneel1Index = sheetData.headers.indexOf('Assignee L1')
 
                 filteredSerials = [];
                 filteredItemIds = [];
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 // No assignee selected: filter out TASK STATE === "Submit"
                 const itemIdIndex = sheetData.headers.indexOf('Item_Id');
-                const assigneel1Index = sheetData.headers.indexOf('Assignee')
+                const assigneel1Index = sheetData.headers.indexOf('Assignee L1')
                 const taskStatusIndex = sheetData.headers.indexOf('TASK STATE');
                 const submitIndex = sheetData.headers.indexOf('Submit');
                 filteredItemIds = sheetData.item_ids.filter(id => {
@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const itemIdIndex = sheetData.headers.indexOf('Item_Id');
                 const assigneeIndex = sheetData.headers.indexOf('Assignee L2');
                 const taskStatusIndex = sheetData.headers.indexOf('Submit');
-                const l1assigneeIndex = sheetData.headers.indexOf('Assignee')
+                const l1assigneeIndex = sheetData.headers.indexOf('Assignee L1')
                 const row = sheetData.rows.find(row =>
                     row[slNoIndex] === serial && row[assigneeIndex] === assignee
                 );
@@ -292,6 +292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     $('#assignee').val(row[l1assigneeIndex]).trigger('change.select2');
                     $('#itemId').prop('disabled', true);
                     $('#assignee').prop('disabled', true);
+                    updateWalmartInfo(row[itemIdIndex]);
                     // console.log('Selected Item ID:', $('#itemId').val());
                     // console.log('Item ID Options:', Array.from(itemIdSelect.options).map(opt => opt.value));
                     // Explicitly set URL as fallback
@@ -304,6 +305,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     $('#assignee').val('').trigger('change.select2');
                     $('#assignee').prop('disabled', true);
                     if (urlInput) urlInput.value = '';
+                    updateWalmartInfo(null);
                 }
             } else {
                 $('#itemId').val('').trigger('change.select2');
@@ -311,6 +313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 $('#assignee').val('').trigger('change.select2');
                 $('#assignee').prop('disabled', true);
                 if (urlInput) urlInput.value = '';
+                updateWalmartInfo(null);
             }
         });
 
@@ -320,6 +323,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             $('#itemId').prop('disabled', false);
             const urlInput = document.querySelector('#urlInput input[name="url"]');
             if (urlInput) urlInput.value = '';
+            updateWalmartInfo(null);
         });
 
         // Handle itemId change for URL generation
@@ -329,13 +333,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (urlInput) {
                 if (selectedItemId) {
                     urlInput.value = `https://www.walmart.com/ip/${selectedItemId}?selected=true`;
+                    updateWalmartInfo(selectedItemId);
                 } else {
                     urlInput.value = '';
+                    updateWalmartInfo(null);
                 }
             } else {
                 console.error('URL input element not found');
             }
         });
+
+        function updateWalmartInfo(itemId) {
+            console.log('Updating Walmart Info for Item ID:', itemId);
+            const walmartInfoSelect = document.getElementById('walmart_info');
+            const walmartInfoIndex = sheetData.headers.indexOf('Walmart_Info');
+            console.log('Walmart Info Index:', walmartInfoIndex);
+
+            if (!walmartInfoSelect) return;
+
+            if (itemId) {
+                const itemIdIndex = sheetData.headers.indexOf('Item_Id');
+                const row = sheetData.rows.find(row => row[itemIdIndex] === itemId);
+                console.log('Row found:', row);
+                if (row && walmartInfoIndex !== -1) {
+                    const walmartInfo = row[walmartInfoIndex];
+                    console.log(walmartInfo)
+                    const cleanedWalmartInfo = cleanStr(walmartInfo);
+                    if (cleanedWalmartInfo !== "") {
+                        walmartInfoSelect.value = cleanedWalmartInfo;
+                    } else {
+                        walmartInfoSelect.value = '';
+                        walmartInfoSelect.placeholder = "No Walmart Info for this Item ID";
+                    }
+                }
+            }
+        }
+
+        function cleanStr(s) {
+            if (s === null || s === undefined) {
+                return "";
+            }    
+            return String(s).trim().replace(/^["']|["']$/g, '');
+        }
 
         console.log('Dropdowns initialized with select2');
     } catch (error) {
@@ -507,6 +546,7 @@ async function searchAmazon(part1, part2, part3, searchType, idx) {
     const linkDiv5 = document.getElementById(`bestbuy_link_${idx}`);
     const linkDiv6 = document.getElementById(`wayfair_link_${idx}`);
     const matchFormDiv = document.getElementById(`match_form_${idx}`);
+    // const search_results = document.getElementById('search_results');
     loader.style.display = 'block';
     try {
         const response = await fetch('/search/', {
@@ -529,6 +569,9 @@ async function searchAmazon(part1, part2, part3, searchType, idx) {
         const link5 = result.bestbuy_url;
         const link6 = result.wayfair_url;
         loader.style.display = 'none';
+        // if (searchType == "title"){
+        //     search_results.innerHTML = `<b>Search Results of Button: Title Search</b>`;
+        // }
         if (linkDiv && link && link !== "Not Found") {
             linkDiv.innerHTML = `<b>Amazon Result Page: </b><a href="${link}" target="_blank">Open Amazon Product</a>`;
             window.open(link, '_blank');
@@ -888,6 +931,7 @@ async function showMatchForm(idx, matchFormDiv) {
                     assignee: $('#assignee').val() || '',
                     taskSerial: $('#taskSerial').val() || '',
                     itemId: $('#itemId').val() || '',
+                    walmartInfo: $('#walmart_info').val() || '',
                     walmartUrl: walmartUrl,
                     matchType: matchType || '',
                     matchTypeComments: $(`#match_type_comments_${idx}`).val() || '',
